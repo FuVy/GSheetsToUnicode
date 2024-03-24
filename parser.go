@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
@@ -27,25 +28,32 @@ func Parse(apiKey, spreadsheetId, inputPath, outputPath string) (err error) {
 		log.Printf("Unable to retrieve Sheets client: %v\n", err)
 		return
 	}
-
-	for i, readRange := range lines {
-		// Call the Sheets API to get the values
-		resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
-		if err != nil {
-			log.Printf("Unable to retrieve data from sheet: %v\n", err)
-			return err
-		}
-
-		if len(resp.Values) == 0 {
-			log.Println("No data found.")
-		} else {
-			for _, row := range resp.Values {
-				str := fmt.Sprintf("%v", row)
-				addUnicodeHexCodes(str, &characters)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	for _, readRange := range lines {
+		wg.Add(1)
+		go func(readRange string) {
+			defer wg.Done()
+			// Call the Sheets API to get the values
+			resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
+			if err != nil {
+				log.Printf("Unable to retrieve data from sheet: %v\n", err)
+				return
 			}
-		}
-		fmt.Printf("%v completed \n", i)
+
+			if len(resp.Values) == 0 {
+				log.Println("No data found.")
+				return
+			} else {
+				for _, row := range resp.Values {
+					str := fmt.Sprintf("%v", row)
+					addUnicodeHexCodes(str, &characters, &mu)
+				}
+			}
+			fmt.Printf("%v completed \n", readRange)
+		}(readRange)
 	}
+	wg.Wait()
 
 	slice := valuesToStringSlice(characters)
 
@@ -69,10 +77,12 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func addUnicodeHexCodes(input string, unicodeHexCodes *map[string]interface{}) {
+func addUnicodeHexCodes(input string, unicodeHexCodes *map[string]interface{}, mu *sync.Mutex) {
 	for _, r := range input {
 		hexCode := fmt.Sprintf("%04X", r) // Convert rune to 4-digit hexadecimal string
+		mu.Lock()
 		(*unicodeHexCodes)[hexCode] = true
+		mu.Unlock()
 	}
 }
 
