@@ -43,3 +43,10 @@ func main() {
 	GSheetsToUnicode.ParseAndWrite(apiKey, spreadsheetId, inputPath, outputPath)
 }
 ```
+Here's an example of a file that can be used as input for the program:
+```
+Sheet1!A1:B2
+Sheet2!C2:C100
+```
+This file contains two lines, each representing a range of cells in a Google Sheets document. The first line represents the range A1:B2 in Sheet1, and the second line represents the range C2:C100 in Sheet2. The program will extract the Unicode characters from these ranges and write them to an output file.
+
