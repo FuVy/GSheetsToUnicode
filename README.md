@@ -1,6 +1,6 @@
 # GSheetsToUnicode
  
-This Go package provides a simple way to extract Unicode characters from a Google Sheets document and write them to a file.
+This Go package provides a simple way to extract a list of unique Unicode characters from a Google Sheets document
 
 ## Installation
 To use this package, you need to have Go installed on your machine. Then, you can install the package by running:
