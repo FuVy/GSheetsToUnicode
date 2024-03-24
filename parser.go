@@ -13,7 +13,7 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
-func Parse(apiKey, spreadsheetId, inputPath, outputPath string) (err error) {
+func Parse(apiKey, spreadsheetId, inputPath string) (symbols []string, err error) {
 	ctx := context.Background()
 	characters := make(map[string]interface{})
 
@@ -57,7 +57,20 @@ func Parse(apiKey, spreadsheetId, inputPath, outputPath string) (err error) {
 
 	slice := valuesToStringSlice(characters)
 
-	writeToFile(outputPath, slice)
+	return slice, nil
+}
+
+func ParseAndWrite(apiKey, spreadsheetId, inputPath, outputPath string) (err error) {
+	slice, err := Parse(apiKey, spreadsheetId, inputPath)
+	if err != nil {
+		log.Printf("error parsing sheets: %v\n", err)
+		return
+	}
+	err = writeToFile(outputPath, slice)
+	if err != nil {
+		log.Printf("error writing results to file: %v\n", err)
+		return
+	}
 	return nil
 }
 
