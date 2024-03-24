@@ -1,0 +1,5 @@
+1. Abilities!J1:J400
+2. Statuses!J1:J150
+3. UpgradeCellNames!H1:H250
+4. ItemNames!J1:J100
+4b. ItemDescriptions!J1:J100
